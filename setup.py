@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name='helm_python',  
-    version='0.1',
+    version='0.1.1',
     scripts=['helm_python'] ,
     author="Sebastien Lavayssiere",
     author_email="sebastien.lavayssiere@gmail.com",

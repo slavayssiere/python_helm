@@ -2,3 +2,4 @@ __pycache__
 build
 dist
 helm_python.egg-info
+.vscode/settings.json
