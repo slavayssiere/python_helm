@@ -18,6 +18,9 @@ import Helm
 helm = Helm()
 ```
 
+optionnal:
+ - debug : if True, only display command (default: False)
+
 This init function check if Helm is installed in PATH and if Helm version is 3 or higher
 
 ## helm upgrade
@@ -42,7 +45,28 @@ where :
 Optionnal :
 
 - namespace: namespace for installation
-- 
+- value_file_path: path to your values.yaml
+- sets (array) : list of overwrite values
+- wait : False if Helm dosn't have to wait the running status (default: True)
+
+example for sets use :
+
+```python
+tst_set = [
+    {
+        'name': 'image.tag',
+        'value': '2.0.0'
+    },
+    {
+        'name': 'grafana."grafana\.ini"."auth\.google"',
+        'value': 'SECRET'
+    },
+    {
+        'name': 'alertmanager.config.receivers[0].slack_configs[0].api_url',
+        'value': 'ANOTHER_SECRET'
+    }
+]
+```
 
 ## develop
 

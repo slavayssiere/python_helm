@@ -5,7 +5,9 @@ from subprocess import run, call, PIPE
 
 class Helm:
 
-  def __init__(self):
+  def __init__(self, debug=False):
+    self.dbg = debug
+
     # test if helm is in PATH
     if shutil.which('helm') is None:
       print('Helm is not installed')
@@ -13,7 +15,7 @@ class Helm:
 
     # test Helm version
     p = run(["helm", "version"], check=True, stdout=PIPE).stdout
-    m = re.search('"v(\d+?).(\d+?).(\d+?)-?[^"]*"', str(p))
+    m = re.search(r'"v(\d+?).(\d+?).(\d+?)-?[^"]*"', str(p))
     if m:
       major = m.group(1)
       minor = m.group(2)
@@ -27,7 +29,7 @@ class Helm:
 
     print("Using Helm Major: " + major + ". Minor: " + minor + ". Patch: " + patch)
     
-  def upgrade(self, name, path, namespace='default', value_file_path='', sets=[]):
+  def upgrade(self, name, path, namespace='default', value_file_path='', sets=[], wait=True):
 
     # MANDATORY : all helm upgrade command must start with
     command = [
@@ -37,6 +39,9 @@ class Helm:
       "--namespace", namespace
     ]
 
+    if wait:
+      command.append("--wait")
+
     if len(value_file_path) > 0:
       command.append("--values")
       command.append(value_file_path)
@@ -44,12 +49,17 @@ class Helm:
       print('No file value')
 
     if len(sets) > 0:
+      print(sets)
       set_string = ''
-      for i, set in sets:
+      i = 0
+      for set_obj in sets:
+        print(set_obj)
         if i == 0:
-          set_string = set['name'] + "=" + set['value']
+          set_string = set_obj['name'] + "=" + set_obj['value']
         else:
-          set_string = set_string + "," + set['name'] + "=" + set['value']
+          set_string = set_string + "," + set_obj['name'] + "=" + set_obj['value']
+        i = i + 1
+
       command.append("--set")
       command.append(set_string)
         
@@ -62,4 +72,18 @@ class Helm:
     command.append(path)
 
     # call the command locally
-    call(command)
+    if self.dbg:
+      print(command)
+    else:
+      # we launch command
+      p = run(command, check=True, stdout=PIPE).stdout
+
+      # search if answer is an error of repo update
+      m = re.search('`helm repo update`', str(p))
+      if m:
+        # update the repo and launch command again
+        run(["helm","repo", "update"])
+        p = run(command, check=True, stdout=PIPE).stdout
+
+      # print final output
+      print(str(p))
